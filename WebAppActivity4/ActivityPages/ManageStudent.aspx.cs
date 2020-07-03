@@ -51,7 +51,20 @@ namespace WebAppActivity4.ActivityPages
             try
             {
                 //Add code here to get all the Student records and bind to the "StudentList" dropdown
-         
+
+                StudentController sysmgr = new StudentController();
+                List<Student> info = null;
+                info = sysmgr.List();
+                info.Sort((x, y) => x.StudentName.CompareTo(y.StudentName));
+                StudentList.DataSource = info;
+                StudentList.DataTextField = nameof(Student.StudentName);
+                StudentList.DataValueField = nameof(Student.StudentID);
+                StudentList.DataBind();
+                ListItem myitem = new ListItem();
+                myitem.Value = "0";
+                myitem.Text = "select...";
+                StudentList.Items.Insert(0, myitem);
+
             }
             catch (Exception ex)
             {
@@ -63,7 +76,19 @@ namespace WebAppActivity4.ActivityPages
             try
             {
                 //Add code here to get all the Program records and bind to the "ProgramList" dropdown
-                
+                ProgramController sysmgr = new ProgramController();
+                List<Program> info = null;
+                info = sysmgr.List();
+                info.Sort((x, y) => x.ProgramName.CompareTo(y.ProgramName));
+                ProgramList.DataSource = info;
+                ProgramList.DataTextField = nameof(Program.ProgramName);
+                ProgramList.DataValueField = nameof(Program.ProgramID);
+                ProgramList.DataBind();
+                ListItem myitem = new ListItem();
+                myitem.Value = "0";
+                myitem.Text = "select...";
+                ProgramList.Items.Insert(0, myitem);
+
             }
             catch (Exception ex)
             {
@@ -82,7 +107,26 @@ namespace WebAppActivity4.ActivityPages
                 {
                     //Add code here to FindByPKID the ONE Student record and then populate all the textboxes,
                     //do not change the code above, only add code in this "try" structure
-                    
+                    BindProgramList();
+                    string studentID = StudentList.SelectedValue;
+                    StudentController sysmgr = new StudentController();
+                    Student info = null;
+                    info = sysmgr.FindByPKID(int.Parse(studentID));
+                    if (info == null)
+                    {
+                        ShowMessage("Record is not in Database.", "alert alert-info");
+                        
+                    }
+                    else
+                    {
+                        ID.Text = info.StudentID.ToString();
+                        StudentName.Text = info.StudentName;
+                        ProgramList.SelectedValue = info.ProgramID.ToString(); 
+                        Credits.Text = info.Credits.ToString();
+                        EmergencyPhoneNumber.Text = info.EmergencyPhoneNumber.ToString();
+
+                    }
+
                 }
                 catch (Exception ex)
                 {
@@ -104,6 +148,26 @@ namespace WebAppActivity4.ActivityPages
             //Program is required
             //Credits is required and has to be a double between 0.00 and 100.00
             //Validation for the EmergencyPhoneNumber has been provided above, do not change
+            else if (string.IsNullOrEmpty(StudentName.Text))
+            {
+                ShowMessage("Student Name is required", "alert alert-info");
+                return false;
+            }
+            else if (ProgramList.SelectedValue == "0")
+            {
+                ShowMessage("Please Select a Program", "alert alert-info");
+                return false;
+            }            
+            else if (string.IsNullOrEmpty(Credits.Text))
+            {
+                ShowMessage("Credits are required", "alert alert-info");
+                return false;
+            }
+            else if (double.Parse(Credits.Text) < 0.00 || double.Parse(Credits.Text) > 100.00)
+            {
+                ShowMessage("Credits are required to be between 0.00 and 100.00", "alert alert-info");
+                return false;
+            }
             else
             {
                 return true;
@@ -123,6 +187,24 @@ namespace WebAppActivity4.ActivityPages
                     {
                         //Add code here to Update the ONE Student record, 
                         //do not change the code above, only add code in this "try" structure
+                        StudentController sysmgr = new StudentController();
+                        Student item = new Student();
+                        item.StudentID = int.Parse(ID.Text);
+                        item.StudentName = StudentName.Text.Trim();                        
+                        item.ProgramID = int.Parse(ProgramList.SelectedValue);
+                        item.Credits = double.Parse(Credits.Text);
+                        item.EmergencyPhoneNumber = EmergencyPhoneNumber.Text;
+                        
+                        int rowsaffected = sysmgr.Update(item);
+                        if (rowsaffected > 0)
+                        {
+                            ShowMessage("Record has been UPDATED", "alert alert-success");
+                        }
+                        else
+                        {
+                            ShowMessage("Record was not found", "alert alert-warning");
+                        }
+                        
                     
                     }
                     catch (Exception ex)
